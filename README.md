@@ -1,6 +1,13 @@
 # gitops-platform
 
-Runs [payflow-api](https://github.com/Schaib03/payflow-api),
+A GitOps platform on Kubernetes: Terraform bootstraps a kind cluster and Argo CD deploys everything else from Git.
+
+[![ci](https://github.com/Schaib03/gitops-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/Schaib03/gitops-platform/actions/workflows/ci.yml)
+![helm](https://img.shields.io/badge/Helm-charts-0F1689)
+![argo cd](https://img.shields.io/badge/Argo%20CD-app--of--apps-EF7B4D)
+![terraform](https://img.shields.io/badge/Terraform-1.17-844FBA)
+
+It runs [payflow-api](https://github.com/Schaib03/payflow-api),
 [corebank-api](https://github.com/Schaib03/corebank-api) and the
 [greenwindow](https://github.com/Schaib03/greenwindow) operator on Kubernetes, the GitOps way.
 Terraform creates a local kind cluster and installs Argo CD. From then on, everything in
