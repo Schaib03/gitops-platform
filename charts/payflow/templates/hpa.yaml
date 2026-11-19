@@ -21,6 +21,5 @@ spec:
           averageUtilization: {{ .Values.web.autoscaling.targetCPUUtilizationPercentage }}
   behavior:
     scaleDown:
-      # Avoid flapping: wait 5 minutes of low load before removing pods.
       stabilizationWindowSeconds: 300
 {{- end }}

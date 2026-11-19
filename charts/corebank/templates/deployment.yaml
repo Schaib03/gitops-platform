@@ -45,8 +45,7 @@ spec:
                 name: {{ include "corebank.fullname" . }}
             - secretRef:
                 name: {{ .Values.existingSecret }}
-          # Flyway migrates on startup. It takes a lock in the database, so two pods
-          # starting together do not both migrate. The startup probe gives it time.
+          # Flyway runs at startup (it locks, so concurrent pods are fine).
           startupProbe:
             httpGet:
               path: /actuator/health/liveness
@@ -70,7 +69,6 @@ spec:
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           volumeMounts:
-            # Tomcat and the JVM need a writable temp directory.
             - name: tmp
               mountPath: /tmp
       volumes:

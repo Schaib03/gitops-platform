@@ -1,4 +1,3 @@
-# Grafana dashboards and alert rules (kustomize).
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

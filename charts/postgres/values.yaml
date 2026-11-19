@@ -1,6 +1,4 @@
-# A deliberately small PostgreSQL for a local cluster: one pod, one volume, no
-# replication or backups. In a real environment this would be a managed database
-# or an operator such as CloudNativePG.
+# Local only: one pod, no replication, no backups.
 image:
   repository: postgres
   tag: 16-alpine

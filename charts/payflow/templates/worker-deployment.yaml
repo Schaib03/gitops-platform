@@ -25,8 +25,7 @@ spec:
       {{- end }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      # Tasks are acked late, so a worker killed mid-task gets its task redelivered.
-      # Give running deliveries time to finish on a normal shutdown.
+      # let in-flight webhook deliveries finish
       terminationGracePeriodSeconds: 60
       containers:
         - name: worker

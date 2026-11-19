@@ -1,7 +1,5 @@
 {{- if .Values.migrations.enabled }}
-# Runs before the new pods are rolled out. Helm runs it as a pre-install/pre-upgrade
-# hook; Argo CD maps these annotations to a PreSync hook. It does not use the chart's
-# ConfigMap because hooks run before the rest of the release is applied.
+# Hooks run before the rest of the release, so no chart ConfigMap here (Argo CD: PreSync).
 apiVersion: batch/v1
 kind: Job
 metadata:

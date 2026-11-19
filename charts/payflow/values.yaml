@@ -9,7 +9,6 @@ imagePullSecrets: []
 # cluster). Expected keys: DATABASE_URL, DJANGO_SECRET_KEY.
 existingSecret: payflow-secrets
 
-# Non-secret settings, rendered into a ConfigMap.
 config:
   DJANGO_DEBUG: "0"
   # Kubelet probes and Prometheus call pods by IP; the ingress already restricts hosts.
@@ -48,8 +47,6 @@ worker:
     limits:
       memory: 384Mi
 
-# Runs "manage.py migrate" as a Helm pre-install/pre-upgrade hook
-# (Argo CD runs it as a PreSync hook).
 migrations:
   enabled: true
   # Waits for PostgreSQL before migrating, so a fresh cluster can sync in any order.
@@ -59,7 +56,6 @@ migrations:
     port: 5432
   backoffLimit: 3
 
-# Daily cleanup of expired idempotency keys.
 purgeIdempotencyKeys:
   enabled: true
   schedule: "17 3 * * *"

@@ -24,7 +24,6 @@ spec:
       labels:
         {{- include "payflow.selectorLabels" $component | nindent 8 }}
       annotations:
-        # Restart pods when the ConfigMap changes.
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
     spec:
       {{- with .Values.imagePullSecrets }}
