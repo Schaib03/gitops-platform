@@ -1,0 +1,29 @@
+# A deliberately small PostgreSQL for a local cluster: one pod, one volume, no
+# replication or backups. In a real environment this would be a managed database
+# or an operator such as CloudNativePG.
+image:
+  repository: postgres
+  tag: 16-alpine
+  pullPolicy: IfNotPresent
+
+# Secret created by Terraform, never committed. Keys: POSTGRES_PASSWORD plus one
+# <NAME>_PASSWORD per database below.
+existingSecret: postgres-credentials
+
+# One database and owner per application.
+databases:
+  - name: payflow
+    passwordKey: PAYFLOW_PASSWORD
+  - name: corebank
+    passwordKey: COREBANK_PASSWORD
+
+persistence:
+  size: 2Gi
+  storageClassName: ""
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 512Mi

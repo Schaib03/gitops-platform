@@ -1,0 +1,16 @@
+image:
+  repository: redis
+  tag: 7-alpine
+  pullPolicy: IfNotPresent
+
+# Append-only file on a volume so queued Celery tasks survive a Redis restart.
+persistence:
+  size: 1Gi
+  storageClassName: ""
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    memory: 256Mi
