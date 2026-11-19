@@ -1,0 +1,17 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+.terraform.lock.hcl.bak
+
+# Generated
+/rendered/
+kubeconfig*
+charts/*/charts/
+*.tgz
+
+.idea/
+.vscode/

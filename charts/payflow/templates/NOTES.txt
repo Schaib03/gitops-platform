@@ -1,0 +1,11 @@
+PayFlow is deployed.
+{{- if .Values.ingress.enabled }}
+
+  API:     http://{{ .Values.ingress.host }}/v1/
+  Swagger: http://{{ .Values.ingress.host }}/docs
+{{- end }}
+
+Sign up a merchant:
+
+  curl -X POST http://{{ .Values.ingress.host }}/v1/merchants \
+    -H 'Content-Type: application/json' -d '{"name": "Demo", "email": "demo@example.ma"}'

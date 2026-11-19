@@ -1,0 +1,45 @@
+{{- if .Values.purgeIdempotencyKeys.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "payflow.fullname" . }}-purge-idempotency-keys
+  labels:
+    {{- include "payflow.labels" . | nindent 4 }}
+    app.kubernetes.io/component: cron
+spec:
+  schedule: {{ .Values.purgeIdempotencyKeys.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: Never
+          {{- with .Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+          containers:
+            - name: purge
+              image: {{ include "payflow.image" . }}
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              command: ["python", "manage.py", "purge_idempotency_keys"]
+              envFrom:
+                {{- include "payflow.envFrom" . | nindent 16 }}
+              resources:
+                requests:
+                  cpu: 20m
+                  memory: 128Mi
+                limits:
+                  memory: 256Mi
+              securityContext:
+                {{- toYaml .Values.securityContext | nindent 16 }}
+              volumeMounts:
+                {{- include "payflow.tmpMount" . | nindent 16 }}
+          volumes:
+            {{- include "payflow.tmpVolume" . | nindent 12 }}
+{{- end }}

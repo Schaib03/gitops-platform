@@ -1,0 +1,98 @@
+image:
+  repository: ghcr.io/schaib03/payflow-api
+  tag: latest
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+# Secret created outside of Git (Terraform locally, External Secrets or similar in a real
+# cluster). Expected keys: DATABASE_URL, DJANGO_SECRET_KEY.
+existingSecret: payflow-secrets
+
+# Non-secret settings, rendered into a ConfigMap.
+config:
+  DJANGO_DEBUG: "0"
+  # Kubelet probes and Prometheus call pods by IP; the ingress already restricts hosts.
+  DJANGO_ALLOWED_HOSTS: "*"
+  CELERY_BROKER_URL: redis://redis.data.svc.cluster.local:6379/0
+  PAYFLOW_FEE_PERCENT: "1.5"
+  PAYFLOW_FEE_FIXED: "100"
+  WEBHOOK_MAX_ATTEMPTS: "8"
+  LOG_LEVEL: INFO
+
+web:
+  replicaCount: 2
+  port: 8000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 192Mi
+    limits:
+      memory: 384Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 70
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+worker:
+  replicaCount: 1
+  concurrency: 2
+  resources:
+    requests:
+      cpu: 50m
+      memory: 192Mi
+    limits:
+      memory: 384Mi
+
+# Runs "manage.py migrate" as a Helm pre-install/pre-upgrade hook
+# (Argo CD runs it as a PreSync hook).
+migrations:
+  enabled: true
+  # Waits for PostgreSQL before migrating, so a fresh cluster can sync in any order.
+  waitForDatabase:
+    enabled: true
+    host: postgres.data.svc.cluster.local
+    port: 5432
+  backoffLimit: 3
+
+# Daily cleanup of expired idempotency keys.
+purgeIdempotencyKeys:
+  enabled: true
+  schedule: "17 3 * * *"
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: traefik
+  host: payflow.localtest.me
+  annotations: {}
+  tls: []
+
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  labels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  fsGroup: 10001
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

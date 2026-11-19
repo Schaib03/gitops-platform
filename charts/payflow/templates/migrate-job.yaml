@@ -1,0 +1,75 @@
+{{- if .Values.migrations.enabled }}
+# Runs before the new pods are rolled out. Helm runs it as a pre-install/pre-upgrade
+# hook; Argo CD maps these annotations to a PreSync hook. It does not use the chart's
+# ConfigMap because hooks run before the rest of the release is applied.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "payflow.fullname" . }}-migrate
+  labels:
+    {{- include "payflow.labels" . | nindent 4 }}
+    app.kubernetes.io/component: migrate
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "0"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: {{ .Values.migrations.backoffLimit }}
+  activeDeadlineSeconds: 600
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Chart.Name }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: migrate
+    spec:
+      restartPolicy: Never
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- if .Values.migrations.waitForDatabase.enabled }}
+      initContainers:
+        - name: wait-for-postgres
+          image: {{ include "payflow.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - python
+            - -c
+            - |
+              import socket, sys, time
+              host, port = "{{ .Values.migrations.waitForDatabase.host }}", {{ .Values.migrations.waitForDatabase.port }}
+              for attempt in range(120):
+                  try:
+                      socket.create_connection((host, port), timeout=2).close()
+                      sys.exit(0)
+                  except OSError:
+                      print(f"waiting for {host}:{port}", flush=True)
+                      time.sleep(5)
+              sys.exit(1)
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+      {{- end }}
+      containers:
+        - name: migrate
+          image: {{ include "payflow.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["python", "manage.py", "migrate", "--noinput"]
+          envFrom:
+            - secretRef:
+                name: {{ .Values.existingSecret }}
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 256Mi
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          volumeMounts:
+            {{- include "payflow.tmpMount" . | nindent 12 }}
+      volumes:
+        {{- include "payflow.tmpVolume" . | nindent 8 }}
+{{- end }}
