@@ -1,0 +1,34 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: greenwindow
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Schaib03/greenwindow.git
+    targetRevision: main
+    path: deploy/chart/greenwindow
+    helm:
+      valuesObject:
+        image:
+          tag: "0.1.0"
+        metrics:
+          serviceMonitor:
+            enabled: true
+        grafanaDashboard:
+          enabled: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: greenwindow
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true

@@ -1,7 +1,8 @@
 # gitops-platform
 
-Runs [payflow-api](https://github.com/Schaib03/payflow-api) and
-[corebank-api](https://github.com/Schaib03/corebank-api) on Kubernetes, the GitOps way.
+Runs [payflow-api](https://github.com/Schaib03/payflow-api),
+[corebank-api](https://github.com/Schaib03/corebank-api) and the
+[greenwindow](https://github.com/Schaib03/greenwindow) operator on Kubernetes, the GitOps way.
 Terraform creates a local kind cluster and installs Argo CD. From then on, everything in
 the cluster (ingress, monitoring, databases, the two apps) is declared in this repository
 and kept in sync by Argo CD.
@@ -24,6 +25,7 @@ flowchart TB
         root --> dash[Dashboards + alerts]
         root --> payflow[payflow<br/>web, worker, migrate job]
         root --> corebank[corebank]
+        root --> gw[greenwindow operator]
         payflow --> pg
         payflow --> redis
         corebank --> pg
@@ -59,7 +61,7 @@ Sync order is controlled with sync waves on the child Applications:
 | -2 | traefik, metrics-server, kube-prometheus-stack |
 | -1 | postgres, redis |
 | 0 | dashboards |
-| 1 | payflow, corebank |
+| 1 | payflow, corebank, greenwindow |
 
 Argo CD is configured with a health check for `Application` resources, so a wave only
 starts when the previous one is healthy.
@@ -151,9 +153,9 @@ place replicas on different nodes when possible.
 `/tmp`), all Linux capabilities dropped and the RuntimeDefault seccomp profile.
 
 **Monitoring.** kube-prometheus-stack is set to pick up every ServiceMonitor and
-PrometheusRule in the cluster, not only those labelled with its release name. The
-dashboard is a ConfigMap with the `grafana_dashboard` label, loaded by the Grafana
-sidecar. The alert rules cover 5xx rates, failing webhooks, a missing Celery worker,
+PrometheusRule in the cluster, not only those labelled with its release name. Dashboards
+are ConfigMaps with the `grafana_dashboard` label, loaded by the Grafana sidecar from any
+namespace (greenwindow ships its own). The alert rules cover 5xx rates, failing webhooks, a missing Celery worker,
 CoreBank being unreachable and the database pool being exhausted.
 
 **Ingress.** Traefik, since ingress-nginx was retired in 2026. It runs on the kind

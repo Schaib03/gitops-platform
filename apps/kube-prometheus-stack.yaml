@@ -42,6 +42,7 @@ spec:
             dashboards:
               enabled: true
               label: grafana_dashboard
+              searchNamespace: ALL
         # These control-plane components listen on localhost in kind and cannot be scraped.
         kubeControllerManager:
           enabled: false
