@@ -1,0 +1,75 @@
+image:
+  repository: ghcr.io/schaib03/corebank-api
+  tag: latest
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+replicaCount: 2
+
+# Secret created outside of Git. Expected keys:
+# DATABASE_PASSWORD, JWT_SECRET, ADMIN_PASSWORD.
+existingSecret: corebank-secrets
+
+config:
+  DATABASE_URL: jdbc:postgresql://postgres.data.svc.cluster.local:5432/corebank
+  DATABASE_USERNAME: corebank
+  ADMIN_EMAIL: admin@corebank.local
+  JWT_TTL: PT1H
+  # Actuator on its own port: reachable by probes and Prometheus, not by the ingress.
+  MANAGEMENT_PORT: "8081"
+  JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError"
+
+ports:
+  http: 8080
+  management: 8081
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 384Mi
+  limits:
+    memory: 640Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: traefik
+  host: corebank.localtest.me
+  annotations: {}
+  tls: []
+
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  labels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  fsGroup: 10001
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

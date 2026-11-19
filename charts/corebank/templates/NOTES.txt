@@ -1,0 +1,8 @@
+CoreBank is deployed.
+{{- if .Values.ingress.enabled }}
+
+  API:     http://{{ .Values.ingress.host }}/api
+  Swagger: http://{{ .Values.ingress.host }}/swagger-ui.html
+{{- end }}
+
+Admin login: {{ .Values.config.ADMIN_EMAIL }} (password in the {{ .Values.existingSecret }} secret).
