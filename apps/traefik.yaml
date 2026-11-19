@@ -1,0 +1,44 @@
+# Ingress controller. ingress-nginx was retired in 2026, Traefik replaces it.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: traefik
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://traefik.github.io/charts
+    chart: traefik
+    targetRevision: 42.4.1
+    helm:
+      valuesObject:
+        # kind maps ports 80/443 of the control-plane node to the host.
+        nodeSelector:
+          ingress-ready: "true"
+        tolerations:
+          - key: node-role.kubernetes.io/control-plane
+            operator: Exists
+            effect: NoSchedule
+        ports:
+          web:
+            hostPort: 80
+          websecure:
+            hostPort: 443
+        service:
+          type: ClusterIP
+        ingressClass:
+          enabled: true
+          isDefaultClass: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: traefik
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

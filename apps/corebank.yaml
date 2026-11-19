@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: corebank
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Schaib03/gitops-platform.git
+    targetRevision: main
+    path: charts/corebank
+    helm:
+      valuesObject:
+        image:
+          tag: latest
+          pullPolicy: Always
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: corebank
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true
