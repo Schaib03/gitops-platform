@@ -1,0 +1,17 @@
+applications:
+  root:
+    namespace: argocd
+    project: default
+    finalizers:
+      - resources-finalizer.argocd.argoproj.io
+    source:
+      repoURL: ${repo_url}
+      targetRevision: ${target_revision}
+      path: apps
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: argocd
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true

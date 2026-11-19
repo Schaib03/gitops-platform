@@ -1,0 +1,7 @@
+# Copy to terraform.tfvars to override defaults.
+cluster_name = "platform"
+worker_nodes = 1
+
+# Point Argo CD at your fork or a feature branch.
+# repo_url        = "https://github.com/<you>/gitops-platform.git"
+# target_revision = "main"
